@@ -36,5 +36,5 @@ Locally:
 <img src='https://i.imgur.com/ojnENJT.png' title='Video Demo' width='' alt='Video Demo' />
 
 Deployed:
-
+url= https://secret-headland-61712-c462b8c671e9.herokuapp.com/predict
 <img src='https://i.imgur.com/5ih6r3s.png' title='Video Demo' width='' alt='Video Demo' />
