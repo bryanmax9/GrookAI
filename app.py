@@ -6,7 +6,7 @@ import asyncio
 app = Flask(__name__)
 
 # Use the API key from the environment variable for security
-api_key = os.getenv('XAI_API_KEY', 'default_api_key_if_not_set')  # Fallback default can be provided
+api_key = os.getenv('XAI_API_KEY', 'Eh97MbeIZ4p4UjhF4D8JVyTRAZm7oErMkdePDVi1jWzNYWPq47XPUFWgqcBd0Ysa7bfaAwrHZCVxK+pzGSVBaXUvHmKzZ8F34vsqwtDpI3hKBCf3rhIz/Obwir0obKZ9PQ')
 client = Client(api_key=api_key)
 
 async def generate_response(text):
@@ -23,17 +23,11 @@ async def generate_response(text):
 
 @app.route('/message', methods=['POST'])
 def message():
-    try:
-        data = request.get_json()
-        text = data['message']
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        response = loop.run_until_complete(generate_response(text))
-        return jsonify({"response": response})
-    except Exception as e:
-        print(f"Error handling message: {e}")
-        return jsonify({"error": str(e)}), 500
+    data = request.get_json()
+    text = data.get('message', '')  # Default to empty string if 'message' is not provided
+    loop = asyncio.get_event_loop()  # Use get_event_loop to handle loop in production better
+    response = loop.run_until_complete(generate_response(text))
+    return jsonify({"response": response})
 
 if __name__ == '__main__':
-    # For local development with Flask's development server
     app.run(debug=True, host='0.0.0.0', port=8080)
