@@ -1,3 +1,4 @@
 flask
 xai_sdk
 gunicorn
+aiohttp
