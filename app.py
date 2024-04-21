@@ -1,33 +1,44 @@
-from flask import Flask, request, jsonify
 import os
-from xai_sdk.client import Client
 import asyncio
+from flask import Flask, request, jsonify
+from xai_sdk.client import Client
 
 app = Flask(__name__)
 
-# Use the API key from the environment variable for security
-api_key = os.getenv('XAI_API_KEY', 'Eh97MbeIZ4p4UjhF4D8JVyTRAZm7oErMkdePDVi1jWzNYWPq47XPUFWgqcBd0Ysa7bfaAwrHZCVxK+pzGSVBaXUvHmKzZ8F34vsqwtDpI3hKBCf3rhIz/Obwir0obKZ9PQ')
-client = Client(api_key=api_key)
+# Set your API key for XAI services securely
+os.environ['XAI_API_KEY'] = 'Eh97MbeIZ4p4UjhF4D8JVyTRAZm7oErMkdePDVi1jWzNYWPq47XPUFWgqcBd0Ysa7bfaAwrHZCVxK+pzGSVBaXUvHmKzZ8F34vsqwtDpI3hKBCf3rhIz/Obwir0obKZ9PQ'
 
 async def generate_response(text):
+    client = Client()
     sampler = client.sampler
-    prompt = f"Human: {text}\n\nAssistant: "
-    response = ""
-    try:
-        async for token in sampler.sample(prompt=prompt, max_len=150, stop_tokens=["\n"], temperature=0.5, nucleus_p=0.95):
-            response += token.token_str
-    except Exception as e:
-        print(f"An error occurred during response generation: {e}")
-        return str(e)
-    return response
 
-@app.route('/message', methods=['POST'])
-def message():
-    data = request.get_json()
-    text = data.get('message', '')  # Default to empty string if 'message' is not provided
-    loop = asyncio.get_event_loop()  # Use get_event_loop to handle loop in production better
-    response = loop.run_until_complete(generate_response(text))
-    return jsonify({"response": response})
+    prompt = f"Human: {text}\n\nAssistant: "
+
+    response = []
+    async for token in sampler.sample(
+        prompt=prompt,
+        max_len=150,
+        stop_tokens=["\n"],
+        temperature=0.5,
+        nucleus_p=0.95
+    ):
+        response.append(token.token_str)
+    
+    return ''.join(response)
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.json
+        text = data['message']
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        response = loop.run_until_complete(generate_response(text))
+
+        return jsonify({'response': response})
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True)
